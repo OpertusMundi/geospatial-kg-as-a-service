@@ -1,0 +1,129 @@
+URI:
+  entity: uri
+  generateWith: getUUID(DATA_SOURCE,osm_id)
+DATA_SOURCE:
+  partOf: sourceInfo
+  entity: source
+  predicate: slipo:sourceRef
+  generateWith: getDataSource
+CATEGORY_URI:
+  entity: category
+  predicate: slipo:category
+  datatype: uri
+ASSIGNED_CATEGORY:
+  entity: assignedCategory
+  predicate: slipo:assignedCategory
+  generateWith: getEmbeddedCategory
+osm_id:
+  partOf: sourceInfo
+  entity: source
+  predicate: slipo:poiRef
+last_update:
+  entity: lastUpdated
+  predicate: slipo:lastUpdated
+  datatype: datetime
+phone:
+  instanceOf: contact
+  entity: phone
+  predicate: slipo:phone
+  type: phone
+email:
+  instanceOf: contact
+  entity: email
+  predicate: slipo:email
+  type: email
+fax:
+  instanceOf: contact
+  entity: fax
+  predicate: slipo:fax
+  type: fax
+website:
+  entity: homepage
+  predicate: slipo:homepage
+  datatype: string
+wikipedia:
+  entity: wikipedia
+  predicate: slipo:otherLink
+  datatype: string
+opening_hours:
+  partOf: timeSlot
+  entity: openingHours
+  predicate: slipo:concat
+name:
+  instanceOf: name
+  entity: name
+  predicate: slipo:name
+  type: official
+TRANSLIT:
+  instanceOf: name
+  entity: translit_name
+  predicate: slipo:name
+  type: transliterated
+  language: en
+  generateWith: getTransliteration(name)
+name_%LANG:
+  instanceOf: name
+  entity: name
+  predicate: slipo:name
+  type: NONE
+  language: getLanguage
+int_name:
+  instanceOf: name
+  entity: int_name
+  predicate: slipo:name
+  type: international
+alt_name:
+  instanceOf: name
+  entity: alt_name
+  predicate: slipo:name
+  type: alternate
+street:
+  partOf: address
+  entity: address
+  predicate: slipo:street
+housenumber:
+  partOf: address
+  entity: address
+  predicate: slipo:number
+city:
+  partOf: address
+  entity: address
+  predicate: slipo:locality
+country:
+  partOf: address
+  entity: address
+  predicate: slipo:country
+postcode:
+  partOf: address
+  entity: address
+  predicate: slipo:postcode
+image:
+  partOf: media
+  entity: media
+  predicate: slipo:url
+  type: image
+  datatype: uri
+description:
+  entity: description
+  predicate: slipo:description
+LONGITUDE:
+  entity: lon
+  predicate: wgs84_pos:long
+  datatype: float
+  generateWith: geometry.getLongitude
+LATITUDE:
+  entity: lat
+  predicate: wgs84_pos:lat
+  datatype: float
+  generateWith: geometry.getLatitude
+AREA:
+  entity: area
+  predicate: slipo:area
+  datatype: float
+  generateWith: geometry.getArea
+LENGTH:
+  entity: length
+  predicate: slipo:length
+  datatype: float
+  generateWith: geometry.getLength
+
