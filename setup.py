@@ -12,5 +12,6 @@ setup(
     install_requires=[
         'fastapi==0.55.1',
         'uvicorn==0.12.3',
+        'rdflib==5.0.0',
     ]
 )
