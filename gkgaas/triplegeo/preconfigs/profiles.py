@@ -35,3 +35,8 @@ osm_shapefile_profile = TripleGeoProfile(
         'wgs84_pos': 'http://www.w3.org/2003/01/geo/wgs84_pos#'
     },
     default_language='en')
+
+
+name_to_profile = {
+    'OSM ShapeFile': osm_shapefile_profile,
+}
