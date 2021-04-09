@@ -1,8 +1,10 @@
 import os
 import shutil
+import subprocess
 import tempfile
 from typing import List
 
+from gkgaas.triplegeo.preconfigs.profiles import osm_shapefile_profile
 from gkgaas.triplegeo.profile import TripleGeoProfile
 
 
@@ -40,6 +42,6 @@ class TripleGeoRunner(object):
         self.profile.to_config_file(conf_file_path)
 
         wd = self.exec_path.rsplit(os.sep, 1)[0]
-        os.subprocess.run([self.exec_path, conf_file_path], cwd=wd)
+        subprocess.run([self.exec_path, conf_file_path], cwd=wd)
 
         shutil.rmtree(tmp_dir)
