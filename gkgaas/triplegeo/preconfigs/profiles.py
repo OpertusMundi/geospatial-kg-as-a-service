@@ -28,15 +28,15 @@ osm_shapefile_profile = TripleGeoProfile(
     class_namespace='http://slipo.eu/id/term/',
     data_source_namespace='http://slipo.eu/id/poisource/',
     namespaces={
-        'slipo': 'http://slipo.eu/def#',
-        'geo': 'http://www.opengis.net/ont/geosparql#',
-        'xsd': 'http://www.w3.org/2001/XMLSchema#',
-        'rdfs': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-        'wgs84_pos': 'http://www.w3.org/2003/01/geo/wgs84_pos#'
+            'slipo': 'http://slipo.eu/def#',
+            'geo': 'http://www.opengis.net/ont/geosparql#',
+            'xsd': 'http://www.w3.org/2001/XMLSchema#',
+            'rdfs': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            'wgs84_pos': 'http://www.w3.org/2003/01/geo/wgs84_pos#'
     },
     default_language='en')
 
 
 name_to_profile = {
-    'OSM ShapeFile': osm_shapefile_profile,
+    'osm shapefile': osm_shapefile_profile,
 }
