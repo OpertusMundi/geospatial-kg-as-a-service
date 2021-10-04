@@ -132,3 +132,6 @@ dmypy.json
 .idea/
 
 settings.yml
+
+# VIM stuff
+*.swp
