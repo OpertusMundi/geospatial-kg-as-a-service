@@ -471,7 +471,6 @@ slipo_match_by_name = LIMESProfile(
         rewriter=LIMESRewriter.DEFAULT),
     output_format=LIMESOutputFormat.TAB)
 
-
 slipo_osm_generic = LIMESProfile(
     prefixes=[
         Prefix(
@@ -534,3 +533,18 @@ slipo_osm_generic = LIMESProfile(
         planner=LIMESPlanner.DEFAULT,
         rewriter=LIMESRewriter.DEFAULT),
     output_format=LIMESOutputFormat.TAB)
+
+
+name_to_profile = {
+    'slipo default': slipo_default_match,
+    'slipo dinuc a1': slipo_dinuc_a1,
+    'slipo dinuc a2': slipo_dinuc_a2,
+    'slipo dinuc a3': slipo_dinuc_a3,
+    'slipo dinuc b1': slipo_dinuc_b1,
+    'slipo dinuc c1': slipo_dinuc_c1,
+    'slipo equi match by name and distance':
+        slipo_equi_match_by_name_and_distance,
+    'slipo match by geometry': slipo_match_by_geometry,
+    'slipo match by name': slipo_match_by_name,
+    'slipo osm generic': slipo_osm_generic
+}
