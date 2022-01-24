@@ -47,7 +47,7 @@ class LIMESRunner(object):
                     continue
                 left_iri_str, right_iri_str, confidence_score_str = line.split()
 
-                g.add((URIRef(left_iri_str), OWL.sameAs, URIRef(right_iri_str)))
+                g.add((URIRef(left_iri_str[1:-1]), OWL.sameAs, URIRef(right_iri_str[1:-1])))
 
         g.serialize(
             open(self.result_links_kg_file_path, 'wb'), format='ntriples')
