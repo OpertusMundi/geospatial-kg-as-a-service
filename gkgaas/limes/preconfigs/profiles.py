@@ -594,6 +594,54 @@ osm_geonames_by_name_and_distance = LIMESProfile(
         rewriter=LIMESRewriter.DEFAULT),
     output_format=LIMESOutputFormat.TAB)
 
+slipo_ny_gov = LIMESProfile(
+    prefixes=[
+        Prefix(
+            namespace='http://slipo.eu/def#',
+            label='slipo'),
+        Prefix(
+            namespace='http://www.w3.org/2002/07/owl#',
+            label='owl'),
+        Prefix(
+            namespace='http://www.opengis.net/ont/geosparql#',
+            label='geo'),
+        Prefix(
+            namespace='http://www.w3.org/2003/01/geo/wgs84_pos#',
+            label='wgs84'),
+        Prefix(
+            namespace='https://data.ny.gov/resource/gxct-stum/',
+            label='nygov')],
+    source=LIMESSource(
+        id='a',
+        var='?x',
+        properties=[
+            'slipo:name/slipo:nameValue AS nolang->lowercase RENAME label'],
+        restrictions=['?x a geo:Feature'],
+        page_size=-1,
+        dataset_type=DatasetType.N_TRIPLES),
+    target=LIMESTarget(
+        id='b',
+        var='?y',
+        properties=[
+            'nygov:geographic_area AS nolang->lowercase->replace(village, )->replace(city, ) RENAME label'],
+        restrictions=['?y ?p ?o'],
+        page_size=-1,
+        dataset_type=DatasetType.N_TRIPLES),
+    metric='trigrams(x.label, y.label)|0.9',
+    acceptance_condition=LIMESAcceptanceCondition(
+        file_path='accepted.csv',
+        relation='owl:sameAs',
+        threshold=0.90),
+    review_condition=LIMESReviewCondition(
+        file_path='review.csv',
+        relation='owl:sameAs',
+        threshold=0.80),
+    execution=LIMESExecution(
+        engine=LIMESEngine.DEFAULT,
+        planner=LIMESPlanner.DEFAULT,
+        rewriter=LIMESRewriter.DEFAULT),
+    output_format=LIMESOutputFormat.TAB)
+
 
 name_to_profile = {
     'slipo default': slipo_default_match,
@@ -607,5 +655,6 @@ name_to_profile = {
     'slipo match by geometry': slipo_match_by_geometry,
     'slipo match by name': slipo_match_by_name,
     'slipo osm generic': slipo_osm_generic,
-    'osm geonames': osm_geonames_by_name_and_distance
+    'osm geonames': osm_geonames_by_name_and_distance,
+    'slipo ny gov': slipo_ny_gov,
 }
