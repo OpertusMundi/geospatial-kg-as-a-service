@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 from typing import List
 
 from gkgaas.sparqlserver import SPARQLServer
@@ -27,7 +28,7 @@ class FusekiWrapper(SPARQLServer):
             args.append(f'--file={file_path}')
 
         args.append(f'--port={self.port}')
-        args.append('/')
+        args.append('/kg')
 
         # /path/to/fuseki-server \
         #     --file=/tmp/file1.nt --file=/gkaas/file2.nt \
