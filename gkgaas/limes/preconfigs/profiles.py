@@ -534,6 +534,66 @@ slipo_osm_generic = LIMESProfile(
         rewriter=LIMESRewriter.DEFAULT),
     output_format=LIMESOutputFormat.TAB)
 
+osm_geonames_by_name_and_distance = LIMESProfile(
+    prefixes=[
+        Prefix(
+            namespace='http://slipo.eu/def#',
+            label='slipo'),
+        Prefix(
+            namespace='http://www.opengis.net/ont/geosparql#',
+            label='geosparql'),
+        Prefix(
+            namespace='http://www.w3.org/2001/XMLSchema#',
+            label='xsd'),
+        Prefix(
+            namespace='http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            label='rdfs'),
+        Prefix(
+            namespace='http://www.w3.org/2003/01/geo/wgs84_pos#',
+            label='wgs'),
+        Prefix(
+            namespace='http://www.w3.org/2002/07/owl#',
+            label='owl'),
+        Prefix(
+            namespace='http://www.geonames.org/ontology#',
+            label='geonames')],
+    source=LIMESSource(
+        id='a',
+        var='?x',
+        page_size=-1,
+        restrictions=['?x a geosparql:Feature'],
+        properties=[
+            'wgs:lat RENAME lat',
+            'wgs:long RENAME long',
+            'slipo:name/slipo:nameValue AS nolang->lowercase RENAME label'],
+        dataset_type=DatasetType.N_TRIPLES),
+    target=LIMESTarget(
+        id='b',
+        var='?y',
+        page_size=-1,
+        restrictions=['?y a geonames:Feature'],
+        properties=[
+            'wgs:lat RENAME lat',
+            'wgs:long RENAME long',
+            'geonames:name AS nolang->lowercase RENAME label'],
+        dataset_type=DatasetType.N_TRIPLES),
+    metric='AND ('
+           'trigrams(x.label, y.label)|0.8, '
+           'euclidean(x.lat|long, y.lat|long)|0.8)',
+    acceptance_condition=LIMESAcceptanceCondition(
+        file_path='accepted.csv',
+        relation='owl:sameAs',
+        threshold=0.95),
+    review_condition=LIMESReviewCondition(
+        file_path='review.csv',
+        relation='owl:sameAs',
+        threshold=0.90),
+    execution=LIMESExecution(
+        engine=LIMESEngine.DEFAULT,
+        planner=LIMESPlanner.DEFAULT,
+        rewriter=LIMESRewriter.DEFAULT),
+    output_format=LIMESOutputFormat.TAB)
+
 
 name_to_profile = {
     'slipo default': slipo_default_match,
@@ -546,5 +606,6 @@ name_to_profile = {
         slipo_equi_match_by_name_and_distance,
     'slipo match by geometry': slipo_match_by_geometry,
     'slipo match by name': slipo_match_by_name,
-    'slipo osm generic': slipo_osm_generic
+    'slipo osm generic': slipo_osm_generic,
+    'osm geonames': osm_geonames_by_name_and_distance
 }
