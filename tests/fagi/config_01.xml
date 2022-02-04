@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<specification>
+    <inputFormat>NT</inputFormat>
+    <outputFormat>NT</outputFormat>
+    <locale>EN</locale>
+    <similarity>jarowinkler</similarity>
+    <verbose>true</verbose>
+    <stats>light</stats>
+    <rules>rules.xml</rules>
+    <left>
+        <id>a</id>
+        <file>/path/to/left_input_file.nt</file>
+    </left>
+    <right>
+        <id>b</id>
+        <file>/path/to/right_input_file.nt</file>
+    </right>
+    <links>
+        <id>links</id>
+        <file>/path/to/links.csv</file>
+        <linksFormat>csv-unique-links</linksFormat>
+    </links>
+    <target>
+        <id>fused</id>
+        <mode>ab_mode</mode>
+        <outputDir>/path/to/output_dir/</outputDir>
+        <fused>fused.nt</fused>
+        <remaining>remaining.nt</remaining>
+        <ambiguous>ambiguous.nt</ambiguous>
+        <statistics>stats.txt</statistics>
+        <fusionLog>log.txt</fusionLog>
+    </target>
+    <ML>
+    </ML>
+</specification>
