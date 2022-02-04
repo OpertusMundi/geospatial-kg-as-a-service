@@ -91,3 +91,39 @@ class FusionAction(Enum):
 
     def __str__(self) -> str:
         return self.value
+
+
+class ValidationAction(Enum):
+    # Accepts link based on the rule property
+    ACCEPT = 'accept'
+
+    # Rejects the whole link based on the rule property
+    REJECT = 'reject'
+
+    # Keeps the default fusion action data but marks the property as ambiguous
+    # by adding a statement to the model
+    ACCEPT_MARK_AMBIGUOUS = 'accept-mark-ambiguous'
+
+    # Rejects the link, but marks the property s ambiguous by adding a statement
+    # to the model
+    REJECT_MARK_AMBIGUOUS = 'reject-mark-ambiguous'
+
+    # Accepts/rejects the link based on the ML model prediction
+    ML_VALIDATION = 'ml-validation'
+
+    def __str__(self) -> str:
+        return self.value
+
+
+class DatasetAction(Enum):
+    # Keeps the value of the left source entity in the fused model.
+    KEEP_LEFT = 'keep-left'
+
+    # Keeps the value of the right source entity in the fused model.
+    KEEP_RIGHT = 'keep-right'
+
+    # Keeps both values of the source entities in the fused model.
+    KEEP_BOTH = 'keep-both'
+
+    def __str__(self) -> str:
+        return self.value
