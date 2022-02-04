@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>
+    <validationRule>
+        <actionRuleSet/>
+        <defaultAction>accept</defaultAction>
+    </validationRule>
+    <rule>
+        <propertyA>http://slipo.eu/def#homepage</propertyA>
+        <propertyB>http://slipo.eu/def#homepage</propertyB>
+        <actionRuleSet>
+            <actionRule>
+                <condition>
+                    <function>exists(a)</function>
+                </condition>
+                <action>keep-left</action>
+            </actionRule>
+        </actionRuleSet>
+        <defaultAction>keep-right</defaultAction>
+    </rule>
+    <defaultDatasetAction>keep-both</defaultDatasetAction>
+    <ensembles>
+        <functionalProperties>http://slipo.eu/def#fax;http://slipo.eu/def#personalInfo http://slipo.eu/def#email</functionalProperties>
+        <nonFunctionalProperties>http://slipo.eu/def#name;http://slipo.eu/def#personalInfo http://slipo.eu/def#sex</nonFunctionalProperties>
+    </ensembles>
+</rules>
