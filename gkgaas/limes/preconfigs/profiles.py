@@ -656,5 +656,5 @@ name_to_profile = {
     'slipo match by name': slipo_match_by_name,
     'slipo osm generic': slipo_osm_generic,
     'osm geonames': osm_geonames_by_name_and_distance,
-    'slipo ny gov': slipo_ny_gov,
+    'slipo ny gov': slipo_ny_gov
 }
