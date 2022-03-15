@@ -26,11 +26,13 @@ class TripleGeoProfile(object):
     input_format: InputFormat
     key_attribute: str
 
+    feature_source: str
+
     # Either one geometry column name, or the column names for x and y (long
     # and lat) coordinates
-    geometry_attribute: Union[str, Tuple[str, str]]
-
-    feature_source: str
+    geometry_attribute: str = None
+    x_attribute: str = None
+    y_attribute: str = None
 
     ###################################
     # settings usually added after object was initialized (and thus need an
@@ -140,10 +142,10 @@ class TripleGeoProfile(object):
             config_file.write(f'attrKey = {self.key_attribute}{nl}')
 
             # attrGeometry / attrX + attrY
-            if isinstance(self.geometry_attribute, Tuple):
-                config_file.write(f'attrX = {self.geometry_attribute[0]}{nl}')
-                config_file.write(f'attrY = {self.geometry_attribute[1]}{nl}')
-            else:
+            if self.x_attribute is not None and self.y_attribute is not None:
+                config_file.write(f'attrX = {self.x_attribute}{nl}')
+                config_file.write(f'attrY = {self.y_attribute}{nl}')
+            if self.geometry_attribute is not None:
                 config_file.write(
                     f'attrGeometry = {self.geometry_attribute}{nl}')
 
