@@ -78,7 +78,7 @@ class TripleGeoProfile(object):
             config_file.write(f'runtime = {self.runtime.value}{nl}')
 
             # inputFormat
-            supported_input_formats = [InputFormat.SHAPEFILE]
+            supported_input_formats = [InputFormat.SHAPEFILE, InputFormat.CSV]
 
             if self.input_format not in supported_input_formats:
                 raise Exception(
