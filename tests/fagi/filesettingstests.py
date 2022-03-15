@@ -117,8 +117,8 @@ class TestLinksFileSettings(unittest.TestCase):
     def test_to_str_01(self):
         expected_config_str = """    <links>
         <id>links</id>
-        <file>/path/to/file.nt</file>
         <linksFormat>nt</linksFormat>
+        <file>/path/to/file.nt</file>
     </links>"""
 
         links_file_settings = LinksFileSettings(
@@ -132,8 +132,8 @@ class TestLinksFileSettings(unittest.TestCase):
     def test_to_str_02(self):
         expected_config_str = """    <links>
         <id>links</id>
-        <file>/path/to/file.csv</file>
         <linksFormat>csv</linksFormat>
+        <file>/path/to/file.csv</file>
     </links>"""
 
         links_file_settings = LinksFileSettings(
@@ -147,8 +147,8 @@ class TestLinksFileSettings(unittest.TestCase):
     def test_to_str_03(self):
         expected_config_str = """    <links>
         <id>links</id>
-        <file>/path/to/file.csv</file>
         <linksFormat>csv-unique-links</linksFormat>
+        <file>/path/to/file.csv</file>
     </links>"""
 
         links_file_settings = LinksFileSettings(
@@ -162,8 +162,8 @@ class TestLinksFileSettings(unittest.TestCase):
     def test_to_str_04(self):
         expected_config_str = """    <links>
         <id>links</id>
-        <file>/path/to/file.csv</file>
         <linksFormat>csv-ensembles</linksFormat>
+        <file>/path/to/file.csv</file>
     </links>"""
 
         links_file_settings = LinksFileSettings(
