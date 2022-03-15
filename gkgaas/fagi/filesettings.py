@@ -60,8 +60,8 @@ class RightInputDatasetSettings(InputDatasetSettings):
 
 @dataclass
 class LinksFileSettings(FileSettings):
-    file_path: str
     links_format: LinksFormat
+    file_path: str = None
 
     _prefix = 'links'
 
@@ -76,7 +76,7 @@ class LinksFileSettings(FileSettings):
 @dataclass
 class FusedOutputDatasetSettings(FileSettings):
     mode: FusionMode
-    output_dir: str
+    output_dir: str = None
 
     # Optional. Specifies the output file path of the fused dataset (based on
     # the fusion mode).
