@@ -167,7 +167,7 @@ class TestRule(unittest.TestCase):
                     action=FusionAction.KEEP_LEFT
                 )
             ],
-            external_property=[
+            external_properties=[
                 ExternalProperty(
                     id='a1',
                     uri=[
@@ -510,7 +510,7 @@ class TestRule(unittest.TestCase):
                     action=FusionAction.KEEP_BOTH
                 )
             ],
-            external_property=[
+            external_properties=[
                 ExternalProperty(
                     'a1', URIRef('http://www.w3.org/2000/01/rdf-schema#label')),
                 ExternalProperty(
@@ -612,7 +612,7 @@ class TestValidationRule(unittest.TestCase):
                 )
             ],
             default_action=ValidationAction.ACCEPT,
-            external_property=[
+            external_properties=[
                 ExternalProperty(
                     id='a1',
                     uri=[
@@ -656,7 +656,7 @@ class TestValidationRule(unittest.TestCase):
                 )
             ],
             default_action=ValidationAction.ACCEPT,
-            external_property=[
+            external_properties=[
                 ExternalProperty(
                     id='a0',
                     uri=[
@@ -791,7 +791,7 @@ class TestValidationRule(unittest.TestCase):
                 )
             ],
             default_action=ValidationAction.REJECT,
-            external_property=[
+            external_properties=[
                 ExternalProperty(
                     id='a0',
                     uri=[
