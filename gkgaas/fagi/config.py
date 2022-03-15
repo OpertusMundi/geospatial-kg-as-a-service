@@ -10,16 +10,17 @@ from gkgaas.fagi.filesettings import LeftInputDatasetSettings, \
 class FAGIConfig:
     input_format: SerializationFormat
     output_format: SerializationFormat
-    verbose: bool
-    stats: StatsLevelOfDetail
-
-    # Absolute path to the "rules.xml" file
-    rules: str
 
     left: LeftInputDatasetSettings
     right: RightInputDatasetSettings
     links: LinksFileSettings
     target: FusedOutputDatasetSettings
+
+    stats: StatsLevelOfDetail = StatsLevelOfDetail.LIGHT
+    verbose: bool = False
+
+    # Absolute path to the "rules.xml" file
+    rules: str = None
 
     # TODO: ML settings
 
