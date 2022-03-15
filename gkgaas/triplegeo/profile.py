@@ -127,7 +127,7 @@ class TripleGeoProfile(object):
                 f'mappingSpec = {file_path}{nl}')
 
             # classificationSpec
-            if self.class_namespace is not None:
+            if self.classification_specification is not None:
                 classification_spec_file = \
                     self.tmp_dir + \
                     os.sep + \
