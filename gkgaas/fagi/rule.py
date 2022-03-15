@@ -58,7 +58,7 @@ class FAGIRule:
     default_action: FusionAction
     action_rule_set: List[ActionRule]
 
-    external_property: List[ExternalProperty] = None
+    external_properties: List[ExternalProperty] = None
 
     def __mk_property_str(self, property_a_b: str) -> str:
         if property_a_b == 'a':
@@ -102,8 +102,8 @@ class FAGIRule:
         {self.__mk_property_str('b')}
 """
 
-        if self.external_property:
-            for ext_prop in self.external_property:
+        if self.external_properties:
+            for ext_prop in self.external_properties:
                 rule_str += f'        {str(ext_prop)}\n'
 
         rule_str += f"""        {self.__mk_action_ruleset().strip()}
@@ -118,7 +118,7 @@ class FAGIValidationRule:
     default_action: ValidationAction
     action_rule_set: List[ValidationActionRule]
 
-    external_property: List[ExternalProperty] = None
+    external_properties: List[ExternalProperty] = None
 
     def __mk_action_ruleset(self) -> str:
         if len(self.action_rule_set) == 0:
@@ -137,8 +137,8 @@ class FAGIValidationRule:
         rule_str = f"""    <validationRule>
 """
 
-        if self.external_property:
-            for ext_prop in self.external_property:
+        if self.external_properties:
+            for ext_prop in self.external_properties:
                 rule_str += f'        {str(ext_prop)}\n'
 
         rule_str += f"""        {self.__mk_action_ruleset().strip()}
