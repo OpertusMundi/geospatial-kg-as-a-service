@@ -190,16 +190,17 @@ class TripleGeoProfile(object):
                     f'nsDataSourceURI = {self.data_source_namespace}{nl}')
 
             # prefixes
-            keys = [k for k in self.namespaces.keys()]
+            if self.namespaces is not None:
+                keys = [k for k in self.namespaces.keys()]
 
-            if keys:
-                values = [self.namespaces[k] for k in keys]
+                if keys:
+                    values = [self.namespaces[k] for k in keys]
 
-                keys_str = ', '.join(keys)
-                vals_str = ', '.join(values)
+                    keys_str = ', '.join(keys)
+                    vals_str = ', '.join(values)
 
-                config_file.write(f'prefixes = {keys_str}{nl}')
-                config_file.write(f'namespaces = {vals_str}{nl}')
+                    config_file.write(f'prefixes = {keys_str}{nl}')
+                    config_file.write(f'namespaces = {vals_str}{nl}')
 
             # sourceCRS
             if self.source_crs is not None:
