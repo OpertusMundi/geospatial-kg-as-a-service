@@ -17,8 +17,8 @@
     </right>
     <links>
         <id>links</id>
-        <file>/path/to/links.csv</file>
         <linksFormat>csv-unique-links</linksFormat>
+        <file>/path/to/links.csv</file>
     </links>
     <target>
         <id>fused</id>
