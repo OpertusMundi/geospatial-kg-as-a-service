@@ -99,11 +99,14 @@ class LIMESSource:
             ret_str += \
                 f'        <MAXOFFSET>{self.max_offset}</MAXOFFSET>' + os.linesep
 
-        if self.restrictions is not None:
+        if self.restrictions:
             for restriction in self.restrictions:
                 ret_str += \
                     f'        <RESTRICTION>{restriction}' \
                     f'</RESTRICTION>' + os.linesep
+        else:
+            ret_str += \
+                f'        <RESTRICTION/>' + os.linesep
 
         for prop in self.properties:
             ret_str += f'        <PROPERTY>{prop}</PROPERTY>' + os.linesep
@@ -151,11 +154,14 @@ class LIMESTarget:
             ret_str += \
                 f'        <MAXOFFSET>{self.max_offset}</MAXOFFSET>' + os.linesep
 
-        if self.restrictions is not None:
+        if self.restrictions:
             for restriction in self.restrictions:
                 ret_str += \
                     f'        <RESTRICTION>{restriction}' \
                     f'</RESTRICTION>' + os.linesep
+        else:
+            ret_str += \
+                f'        <RESTRICTION/>' + os.linesep
 
         for prop in self.properties:
             ret_str += f'        <PROPERTY>{prop}</PROPERTY>' + os.linesep
