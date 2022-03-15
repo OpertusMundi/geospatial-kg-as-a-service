@@ -68,8 +68,8 @@ class LinksFileSettings(FileSettings):
     def __str__(self):
         return f"""    <{self._prefix}>
         <id>{self.id}</id>
-        <file>{self.file_path}</file>
         <linksFormat>{str(self.links_format)}</linksFormat>
+        <file>{self.file_path}</file>
     </{self._prefix}>"""
 
 
