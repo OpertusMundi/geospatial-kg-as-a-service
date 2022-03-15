@@ -66,11 +66,11 @@ class TripleGeoProfile(object):
     input_encoding: Encoding = Encoding.UTF_8
     output_serialization: Serialization = Serialization.N_TRIPLES
     target_geo_ontology: str = 'GeoSPARQL'
+    delimiter: str = '|'
+    quote: str = '"'
 
     # For consideration in the future:
     # classify_by_name: bool
-    # delimiter: str = '|'
-    # quote: str = '"'
 
     def to_config_file(self, config_file_path):
         nl = os.linesep
@@ -211,4 +211,10 @@ class TripleGeoProfile(object):
                 config_file.write(f'targetCRS = {self.target_crs}{nl}')
 
             # defaultLang
-            config_file.write(f'defaultLang = {self.default_language}')
+            config_file.write(f'defaultLang = {self.default_language}{nl}')
+
+            # delimiter
+            config_file.write(f'delimiter = {self.delimiter}{nl}')
+
+            # quote
+            config_file.write(f'quote = {self.quote}')
