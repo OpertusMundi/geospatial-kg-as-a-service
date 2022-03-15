@@ -125,12 +125,12 @@ osm_shapefile_mapping_specification = MappingSpecification(
         # website:
         #   entity: homepage
         #   predicate: slipo:homepage
-        #   datatype: string
+        #   datatype: uri
         MapProperties(
             name='website',
             entity_type='homepage',
             predicate='slipo:homepage',
-            datatype='string'
+            datatype='uri'
         ),
 
         # wikipedia:
