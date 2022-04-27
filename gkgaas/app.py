@@ -70,6 +70,8 @@ def make_knowledge_graph(
         # cause an unrecoverable error
         logger.error(str(e))
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        # TODO: Rather not let the users know this internal message?
+        response.body = 'The TripleGeo executable path could not be found'
 
         return response
 
