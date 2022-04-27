@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 from typing import List
 
-from gkgaas.triplegeo.preconfigs.profiles import osm_shapefile_profile
+from gkgaas.exceptions import WrongExecutablePath
 from gkgaas.triplegeo.profile import TripleGeoProfile
 
 
@@ -23,6 +23,11 @@ class TripleGeoRunner(object):
             profile: TripleGeoProfile,
             input_files: List[str],
             output_dir):
+
+        if not os.path.exists(triplegeo_executable_path):
+            raise WrongExecutablePath(
+                f'TripleGeo path {triplegeo_executable_path} does not exist')
+
         self.exec_path = triplegeo_executable_path
         self.profile = profile
         self.input_files = input_files

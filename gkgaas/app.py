@@ -1,11 +1,15 @@
+import logging
 import os
 import tempfile
 
 import yaml
 from fastapi import FastAPI
+from fastapi import Response
+from fastapi import status
 
 import gkgaas.limes.preconfigs.profiles as limesprofiles
 import gkgaas.triplegeo.preconfigs.profiles as triplegeoprofiles
+from gkgaas.exceptions import WrongExecutablePath
 from gkgaas.limes.runner import LIMESRunner
 from gkgaas.model import ConversionDescription
 from gkgaas.sparqlserver.fusekiwrapper import FusekiWrapper
@@ -14,7 +18,6 @@ from gkgaas.utils.paths import get_file_name_base, get_links_file_path
 
 default_rdf_file_postfix = '.nt'
 gkgaas_app = FastAPI()
-
 
 try:
     with open(os.path.join(os.getcwd(), 'settings.yml')) as yaml_file:
@@ -30,8 +33,11 @@ def list_triplegeo_profiles():
     return [pn for pn in triplegeoprofiles.name_to_profile]
 
 
-@gkgaas_app.post('/make_knowledge_graph')
-def make_knowledge_graph(conversion_description: ConversionDescription):
+@gkgaas_app.post('/make_knowledge_graph', status_code=status.HTTP_201_CREATED)
+def make_knowledge_graph(
+        conversion_description: ConversionDescription,
+        response: Response):
+
     working_dir = tempfile.mkdtemp()
 
     # set up TripleGeo...
@@ -49,11 +55,19 @@ def make_knowledge_graph(conversion_description: ConversionDescription):
 
     # FIXME: has to fetch the files first!
 
-    triplegeo = TripleGeoRunner(
-        triplegeo_executable_path=triplegeo_exec_path,
-        profile=triplegeo_profile,
-        input_files=triplegeo_input_files,
-        output_dir=working_dir)
+    try:
+        triplegeo = TripleGeoRunner(
+            triplegeo_executable_path=triplegeo_exec_path,
+            profile=triplegeo_profile,
+            input_files=triplegeo_input_files,
+            output_dir=working_dir)
+    except WrongExecutablePath as e:
+        # In case the TripleGeo executable path is mis-configured this will
+        # cause an unrecoverable error
+        logger.error(str(e))
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return response
 
     triplegeo.run()
 

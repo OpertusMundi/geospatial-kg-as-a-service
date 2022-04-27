@@ -1,0 +1,2 @@
+class WrongExecutablePath(Exception):
+    pass
