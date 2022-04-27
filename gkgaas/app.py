@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import os
 import tempfile
 
@@ -15,6 +16,9 @@ from gkgaas.model import ConversionDescription
 from gkgaas.sparqlserver.fusekiwrapper import FusekiWrapper
 from gkgaas.triplegeo.runner import TripleGeoRunner
 from gkgaas.utils.paths import get_file_name_base, get_links_file_path
+
+logging.config.fileConfig(os.getenv('LOGGING_FILE_CONFIG', './logging.conf'))
+logger = logging.getLogger(__name__)
 
 default_rdf_file_postfix = '.nt'
 gkgaas_app = FastAPI()
