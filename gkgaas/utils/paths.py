@@ -15,4 +15,4 @@ def get_links_file_path(file_path: str) -> str:
 
     path_w_base_name, suffix = os.path.splitext(file_path)
 
-    return path_w_base_name + '_linked' + suffix
+    return path_w_base_name + '_links' + suffix
