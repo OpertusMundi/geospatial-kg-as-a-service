@@ -5,6 +5,7 @@ import tempfile
 
 from rdflib import Graph, OWL, URIRef
 
+from gkgaas.exceptions import WrongExecutablePath
 from gkgaas.limes.limesprofile import LIMESProfile
 
 
@@ -21,6 +22,12 @@ class LIMESRunner(object):
             target_input_file_path: str,
             result_links_kg_file_path: str,
             output_dir: str):
+
+        if not os.path.exists(limes_executable_path):
+            raise WrongExecutablePath(
+                f'LIMES executable path {limes_executable_path} does not exist'
+            )
+
         self.limes_executable_path = limes_executable_path
         self.profile = profile
         self.result_links_kg_file_path = result_links_kg_file_path
