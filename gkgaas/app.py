@@ -4,15 +4,18 @@ import os
 import tempfile
 
 import yaml
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi import Response
 from fastapi import status
 
 import gkgaas.limes.preconfigs.profiles as limesprofiles
 import gkgaas.triplegeo.preconfigs.profiles as triplegeoprofiles
 from gkgaas.exceptions import WrongExecutablePath
+from gkgaas.fagi import LinksFormat
+from gkgaas.fagi.preconfigs.profiles import slipo_default_ab_mode
+from gkgaas.fagi.runner import FAGIRunner
 from gkgaas.limes.runner import LIMESRunner
-from gkgaas.model import ConversionDescription
+from gkgaas.model import ConversionDescription, KnowledgeGraphConversionInformation, KnowledgeGraphInfo
 from gkgaas.sparqlserver.fusekiwrapper import FusekiWrapper
 from gkgaas.triplegeo.runner import TripleGeoRunner
 from gkgaas.utils.paths import get_file_name_base, get_links_file_path
@@ -35,6 +38,125 @@ except FileNotFoundError:
 @gkgaas_app.get('/triplegeo/profiles/list')
 def list_triplegeo_profiles():
     return [pn for pn in triplegeoprofiles.name_to_profile]
+
+
+@gkgaas_app.post('/add_to_knowledge_graph', status_code=status.HTTP_201_CREATED)
+def add_to_knowledge_graph(
+        kg_conversiuon_information: KnowledgeGraphConversionInformation
+) -> KnowledgeGraphInfo:
+
+    working_dir = tempfile.mkdtemp()
+
+    # set up TripleGeo...
+    triplegeo_cfg = cfg['triplegeo']
+    triplegeo_exec_path = triplegeo_cfg['executable_path']
+    triplegeo_profile_name = \
+        kg_conversiuon_information.conversion_profile_name.lower()
+    triplegeo_profile = \
+        triplegeoprofiles.name_to_profile.get(triplegeo_profile_name)
+    triplegeo_input_file = kg_conversiuon_information.input_file_address
+
+    if triplegeo_profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f'Conversion profile name '
+                   f'"{triplegeo_profile_name}" not known'
+        )
+
+    # FIXME: has to fetch the input file first!
+    # return status.HTTP_400_BAD_REQUEST if dataset is not found or user does
+    # not have the permission to access
+
+    # TODO: Check whether file format matches triplegeo_profile.input_format
+    # return status.HTTP_400_BAD_REQUEST if file format does not match
+
+    try:
+        triplegeo = TripleGeoRunner(
+            triplegeo_executable_path=triplegeo_exec_path,
+            profile=triplegeo_profile,
+            input_files=[triplegeo_input_file],
+            output_dir=working_dir)
+    except WrongExecutablePath as e:
+        # In case the TripleGeo executable path is mis-configured this will
+        # cause an unrecoverable error
+        logger.error(str(e))
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            # TODO: Rather not let the users know this internal message?
+            detail='The TripleGeo executable path could not be found'
+        )
+
+    triplegeo.run()
+
+    result_file_name = \
+        get_file_name_base(triplegeo_input_file) + default_rdf_file_postfix
+    triplegeo_result_file_path = os.path.join(working_dir, result_file_name)
+
+    # TODO: Get Topio KG file
+    # Return 400 Bad Request if file does not exist
+    logger.debug('Start linking')
+    limes_cfg = cfg['limes']
+    limes_exec_path = limes_cfg['executable_path']
+
+    # TODO: Determine which linking profile to use based on metadata? So far we concentrate on POI data
+    limes_target = kg_conversiuon_information.topio_kg_address
+    limes_profile = limesprofiles.slipo_equi_match_by_name_and_distance
+
+    links_file_path = get_links_file_path(triplegeo_result_file_path)
+
+    try:
+        limes = LIMESRunner(
+            limes_executable_path=limes_exec_path,
+            profile=limes_profile,
+            source_input_file_path=triplegeo_result_file_path,
+            target_input_file_path=limes_target,
+            result_links_kg_file_path=links_file_path,
+            output_dir=working_dir)
+    except WrongExecutablePath as e:
+        logger.error(str(e))
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            # TODO: Rather not let the users know this internal message?
+            detail='The LIMES executable path could not be found'
+        )
+
+    limes.run()
+    logger.debug('Linking done')
+
+    # set up FAGI for data fusion
+    fagi_cfg = cfg['fagi']
+    fagi_exec_path = fagi_cfg['executable_path']
+
+    # FIXME: Read through FAGI profiles again and choose appropriate mode
+    fagi_profile = slipo_default_ab_mode
+    fagi_profile.config.links.links_format = LinksFormat.NT
+
+    try:
+        fagi = FAGIRunner(
+            fagi_executable_path=fagi_exec_path,
+            profile=fagi_profile,
+            left_input_file_path=triplegeo_result_file_path,
+            right_input_file_path=kg_conversiuon_information.topio_kg_address,
+            links_file_path=links_file_path,
+            output_dir_path=working_dir)
+    except WrongExecutablePath as e:
+        logger.error(str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            # TODO: Rather not let the users know this internal message?
+            detail='The FAGI executable path could not be found'
+        )
+
+    fagi.run()
+
+    # TODO: Write back result files to Topio Drive
+
+    return KnowledgeGraphInfo(
+        kg_address='false',  # FIXME
+        topio_kg_address=kg_conversiuon_information.topio_kg_address
+    )
 
 
 @gkgaas_app.post('/make_knowledge_graph', status_code=status.HTTP_201_CREATED)
