@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import tempfile
 
+from gkgaas.exceptions import WrongExecutablePath
 from gkgaas.fagi.fagiprofile import FAGIProfile
 
 
@@ -19,6 +20,11 @@ class FAGIRunner(object):
             right_input_file_path: str,
             links_file_path: str,
             output_dir_path: str):
+
+        if not os.path.exists(fagi_executable_path):
+            raise WrongExecutablePath(
+                f'FAGI executable path {fagi_executable_path} does not exist'
+            )
 
         self.exec_path = fagi_executable_path
         self.profile: FAGIProfile = profile
