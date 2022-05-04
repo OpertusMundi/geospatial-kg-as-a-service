@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import subprocess
@@ -6,6 +7,8 @@ from typing import List
 
 from gkgaas.exceptions import WrongExecutablePath
 from gkgaas.triplegeo.profile import TripleGeoProfile
+
+logger = logging.getLogger(__name__)
 
 
 class TripleGeoRunner(object):
@@ -26,7 +29,9 @@ class TripleGeoRunner(object):
 
         if not os.path.exists(triplegeo_executable_path):
             raise WrongExecutablePath(
-                f'TripleGeo path {triplegeo_executable_path} does not exist')
+                f'TripleGeo executable path {triplegeo_executable_path} does '
+                f'not exist'
+            )
 
         self.exec_path = triplegeo_executable_path
         self.profile = profile
