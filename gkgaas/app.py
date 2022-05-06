@@ -167,10 +167,18 @@ def add_to_knowledge_graph(
     ############################################################################
     # Data fusion - FAGI
     #
+    try:
+        # set up FAGI for data fusion
+        fagi_cfg = cfg['fagi']
+        fagi_exec_path = fagi_cfg['executable_path']
+    except (KeyError, AttributeError) as e:
+        log_msg = 'Data fusion tool FAGI was not configured properly'
+        logger.error(log_msg)
 
-    # set up FAGI for data fusion
-    fagi_cfg = cfg['fagi']
-    fagi_exec_path = fagi_cfg['executable_path']
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=log_msg
+        )
 
     # FIXME: Read through FAGI profiles again and choose appropriate mode
     fagi_profile = slipo_default_ab_mode
@@ -190,10 +198,14 @@ def add_to_knowledge_graph(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             # TODO: Rather not let the users know this internal message?
             detail='The data fusion process could not be run since the FAGI '
-                   'executable path could not be found'
-        )
+                   'executable path could not be found')
 
-    fagi.run()
+    try:
+        fagi.run()
+    except RunnerExecutionFailed:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail='The data fusion process failed due to an internal error')
 
     # TODO: Write back result files to Topio Drive
 
