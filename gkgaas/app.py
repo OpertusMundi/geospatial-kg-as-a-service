@@ -10,7 +10,7 @@ from fastapi import status
 
 import gkgaas.limes.preconfigs.profiles as limesprofiles
 import gkgaas.triplegeo.preconfigs.profiles as triplegeoprofiles
-from gkgaas.exceptions import WrongExecutablePath
+from gkgaas.exceptions import WrongExecutablePath, RunnerExecutionFailed
 from gkgaas.fagi import LinksFormat
 from gkgaas.fagi.preconfigs.profiles import slipo_default_ab_mode
 from gkgaas.fagi.runner import FAGIRunner
@@ -84,10 +84,17 @@ def add_to_knowledge_graph(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             # TODO: Rather not let the users know this internal message?
-            detail='The TripleGeo executable path could not be found'
+            detail='The RDF conversion process could not be run since the '
+                   'TripleGeo executable path could not be found'
         )
 
-    triplegeo.run()
+    try:
+        triplegeo.run()
+    except RunnerExecutionFailed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='The RDF conversion process failed. Please check the input '
+                   'file is in the correct format.')
 
     result_file_name = \
         get_file_name_base(triplegeo_input_file) + default_rdf_file_postfix

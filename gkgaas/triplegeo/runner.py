@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from typing import List
 
-from gkgaas.exceptions import WrongExecutablePath
+from gkgaas.exceptions import WrongExecutablePath, RunnerExecutionFailed
 from gkgaas.triplegeo.profile import TripleGeoProfile
 
 logger = logging.getLogger(__name__)
@@ -50,8 +50,25 @@ class TripleGeoRunner(object):
 
         conf_file_path = tmp_dir + os.sep + 'config_generated.properties'
         self.profile.to_config_file(conf_file_path)
-
         wd = self.exec_path.rsplit(os.sep, 1)[0]
-        subprocess.run([self.exec_path, conf_file_path], cwd=wd)
 
-        shutil.rmtree(tmp_dir)
+        try:
+            output = subprocess.check_output(
+                f'{self.exec_path} {conf_file_path}',
+                stderr=subprocess.STDOUT,
+                shell=True,
+                universal_newlines=True,
+                cwd=wd)
+
+        except subprocess.CalledProcessError as e:
+            log_msg = \
+                f'{self.exec_path} failed with return code {e.returncode}:' + \
+                f'\n{e.output}'
+            logger.error(log_msg)
+
+            shutil.rmtree(tmp_dir)
+            raise RunnerExecutionFailed(log_msg)
+
+        else:
+            logger.debug(f'{self.exec_path} succeeded:\n{output}')
+            shutil.rmtree(tmp_dir)
