@@ -52,13 +52,22 @@ def add_to_knowledge_graph(
     #
 
     # set up TripleGeo...
-    triplegeo_cfg = cfg['triplegeo']
-    triplegeo_exec_path = triplegeo_cfg['executable_path']
-    triplegeo_profile_name = \
-        kg_conversiuon_information.conversion_profile_name.lower()
-    triplegeo_profile = \
-        triplegeoprofiles.name_to_profile.get(triplegeo_profile_name)
-    triplegeo_input_file = kg_conversiuon_information.input_file_address
+    try:
+        triplegeo_cfg = cfg['triplegeo']
+        triplegeo_exec_path = triplegeo_cfg['executable_path']
+        triplegeo_profile_name = \
+            kg_conversiuon_information.conversion_profile_name.lower()
+        triplegeo_profile = \
+            triplegeoprofiles.name_to_profile.get(triplegeo_profile_name)
+        triplegeo_input_file = kg_conversiuon_information.input_file_address
+    except (KeyError, AttributeError) as e:
+        log_msg = 'Conversion tool TripleGeo was not configured properly'
+        logger.error(log_msg)
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=log_msg
+        )
 
     if triplegeo_profile is None:
         raise HTTPException(
@@ -110,11 +119,22 @@ def add_to_knowledge_graph(
 
     # TODO: Get Topio KG file
     # Return 400 Bad Request if file does not exist
-    limes_cfg = cfg['limes']
-    limes_exec_path = limes_cfg['executable_path']
+
+    try:
+        limes_cfg = cfg['limes']
+        limes_exec_path = limes_cfg['executable_path']
+
+        limes_target = kg_conversiuon_information.topio_kg_address
+    except (KeyError, AttributeError) as e:
+        log_msg = 'Linking tool LIMES was not configured properly'
+        logger.error(log_msg)
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=log_msg
+        )
 
     # TODO: Determine which linking profile to use based on metadata? So far we concentrate on POI data
-    limes_target = kg_conversiuon_information.topio_kg_address
     limes_profile = limesprofiles.slipo_equi_match_by_name_and_distance
 
     links_file_path = get_links_file_path(triplegeo_result_file_path)
