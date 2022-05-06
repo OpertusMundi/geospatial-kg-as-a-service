@@ -47,6 +47,10 @@ def add_to_knowledge_graph(
 
     working_dir = tempfile.mkdtemp()
 
+    ############################################################################
+    # Data conversion - TripleGeo
+    #
+
     # set up TripleGeo...
     triplegeo_cfg = cfg['triplegeo']
     triplegeo_exec_path = triplegeo_cfg['executable_path']
@@ -100,9 +104,12 @@ def add_to_knowledge_graph(
         get_file_name_base(triplegeo_input_file) + default_rdf_file_postfix
     triplegeo_result_file_path = os.path.join(working_dir, result_file_name)
 
+    ############################################################################
+    # Linking - LIMES
+    #
+
     # TODO: Get Topio KG file
     # Return 400 Bad Request if file does not exist
-    logger.debug('Start linking')
     limes_cfg = cfg['limes']
     limes_exec_path = limes_cfg['executable_path']
 
@@ -126,11 +133,20 @@ def add_to_knowledge_graph(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             # TODO: Rather not let the users know this internal message?
-            detail='The LIMES executable path could not be found'
+            detail='The linking process could not be run since the LIMES '
+                   'executable path could not be found'
         )
 
-    limes.run()
-    logger.debug('Linking done')
+    try:
+        limes.run()
+    except RunnerExecutionFailed:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail='The linking process failed due to an internal error.')
+
+    ############################################################################
+    # Data fusion - FAGI
+    #
 
     # set up FAGI for data fusion
     fagi_cfg = cfg['fagi']
@@ -153,7 +169,8 @@ def add_to_knowledge_graph(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             # TODO: Rather not let the users know this internal message?
-            detail='The FAGI executable path could not be found'
+            detail='The data fusion process could not be run since the FAGI '
+                   'executable path could not be found'
         )
 
     fagi.run()

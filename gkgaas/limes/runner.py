@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import subprocess
@@ -5,8 +6,10 @@ import tempfile
 
 from rdflib import Graph, OWL, URIRef
 
-from gkgaas.exceptions import WrongExecutablePath
+from gkgaas.exceptions import WrongExecutablePath, RunnerExecutionFailed
 from gkgaas.limes.limesprofile import LIMESProfile
+
+logger = logging.getLogger(__name__)
 
 
 class LIMESRunner(object):
@@ -65,9 +68,37 @@ class LIMESRunner(object):
             tmp_dir, 'limes_config_generated.properties')
 
         self.profile.to_config_file(config_file_path)
-
         wd = self.limes_executable_path.rsplit(os.sep, 1)[0]
-        subprocess.run([self.limes_executable_path, config_file_path], cwd=wd)
+
+        try:
+            output = subprocess.check_output(
+                f'{self.limes_executable_path} {config_file_path}',
+                stderr=subprocess.STDOUT,
+                shell=True,
+                universal_newlines=True,
+                cwd=wd)
+        except subprocess.CalledProcessError as e:
+            log_msg = \
+                f'{self.limes_executable_path} failed with return code ' \
+                f'{e.returncode}:\n{e.output}'
+            logger.error(log_msg)
+
+            shutil.rmtree(tmp_dir)
+            raise RunnerExecutionFailed(log_msg)
+
+        else:
+            # It seems LIMES does not handle return values well, i.e. catch
+            # errors and exit gracefully (with exit code 0) even in fatal cases
+            fatal_error_log_snippet = 'Exception in thread "main"'
+            if fatal_error_log_snippet in output:
+                log_msg = \
+                    f'{self.limes_executable_path} seemingly failed:\n{output}'
+                logger.error(log_msg)
+
+                shutil.rmtree(tmp_dir)
+                raise RunnerExecutionFailed(log_msg)
+
+            logger.debug(f'{self.limes_executable_path} succeeded:\n{output}')
 
         accepted_links_file_name = self.profile.acceptance_condition.file_path
 
@@ -79,4 +110,3 @@ class LIMESRunner(object):
         self._create_links_kg(accepted_links_file_name)
 
         shutil.rmtree(tmp_dir)
-
