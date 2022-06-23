@@ -2,11 +2,13 @@ import logging
 import logging.config
 import os
 import tempfile
+from typing import List
 
 import yaml
 from fastapi import FastAPI, HTTPException
 from fastapi import Response
 from fastapi import status
+from starlette.datastructures import URL
 
 import gkgaas.limes.preconfigs.profiles as limesprofiles
 import gkgaas.triplegeo.preconfigs.profiles as triplegeoprofiles
@@ -395,3 +397,111 @@ def make_knowledge_graph(
     # TODO: Move generated files to Topio file store
     # TODO: Delete working_dir!
     # TODO: Stop SPARQL server
+
+
+def _get_normalization_mapping(iris: List[str]):
+    mappings = {}
+
+    for iri_str in iris:
+        iri = URL(iri_str)
+
+        if iri.fragment:
+            cls = iri.fragment.lower()
+        else:
+            local_part = iri.path.split('/')[-1]
+            cls = local_part.lower()
+
+        if mappings.get(cls) is None:
+            mappings[cls] = []
+
+        mappings[cls].append(iri_str)
+
+    return mappings
+
+
+@gkgaas_app.post('/query/types/', status_code=status.HTTP_200_OK)
+def get_classes(kg_info: KnowledgeGraphInfo) -> List[str]:
+    topio_kg_file_path = get_file_path(kg_info.topio_kg_topio_id)
+    user_kg_file_path = get_file_path(kg_info.user_kg_topio_id)
+
+    try:
+        fuseki_cfg = cfg['fuseki']
+        fuseki_exec_path = fuseki_cfg['executable_path']
+    except (KeyError, AttributeError):
+        log_msg = 'SPARQL server was not configured properly'
+        logger.error(log_msg)
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=log_msg
+        )
+
+    try:
+        sparql_server = FusekiWrapper(
+            fuseki_exec_path,
+            [topio_kg_file_path, user_kg_file_path]
+        )
+
+    except WrongExecutablePath as e:
+        # In case the Fuseki executable path is mis-configured this will
+        # cause an unrecoverable error
+        logger.error(str(e))
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            # TODO: Rather not let the users know this internal message?
+            detail='The SPARQL server could not be started since the '
+                   'Fuseki executable path could not be found'
+        )
+
+    except FileNotFoundError as e:
+        logger.error(str(e))
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='One of the input files could not be found'
+        )
+
+    sparql_server.run()
+    res = sparql_server.query(
+        """
+        SELECT DISTINCT ?cls
+        WHERE {
+          ?s a ?cls
+        }
+        """)
+
+    # res looks like this:
+    # {
+    #   'head':
+    #     {
+    #       'vars': ['cls']
+    #     },
+    #   'results':
+    #     {
+    #       'bindings':
+    #         [
+    #           {
+    #             'cls':
+    #               {
+    #                 'type': 'uri',
+    #                 'value': 'http://www.opengis.net/ont/sf#POINT'
+    #               }
+    #           },
+    #           {
+    #             'cls':
+    #               {
+    #                 'type': 'uri',
+    #                 'value': 'http://www.opengis.net/ont/geosparql#Feature'
+    #               }
+    #           }
+    #         ]
+    #     }
+    # }
+    iris = list(map(lambda b: b['cls']['value'], res['results']['bindings']))
+    mappings = _get_normalization_mapping(iris)
+    logger.info(f'Found mappings for these classes: {str(mappings)}')
+    sparql_server.stop()
+
+    return [k for k in mappings.keys()]
+
