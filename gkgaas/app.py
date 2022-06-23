@@ -10,7 +10,8 @@ from fastapi import status
 
 import gkgaas.limes.preconfigs.profiles as limesprofiles
 import gkgaas.triplegeo.preconfigs.profiles as triplegeoprofiles
-from gkgaas.exceptions import WrongExecutablePath, RunnerExecutionFailed
+from gkgaas.exceptions import WrongExecutablePath, RunnerExecutionFailed, \
+    ProtocolNotSupportedException
 from gkgaas.fagi import LinksFormat
 from gkgaas.fagi.preconfigs.profiles import slipo_default_ab_mode
 from gkgaas.fagi.runner import FAGIRunner
@@ -20,6 +21,7 @@ from gkgaas.model import ConversionDescription, KnowledgeGraphConversionInformat
 from gkgaas.sparqlserver.fusekiwrapper import FusekiWrapper
 from gkgaas.triplegeo.runner import TripleGeoRunner
 from gkgaas.utils.paths import get_file_name_base, get_links_file_path
+from gkgaas.utils.pidserviceclient import DummyPIDServiceClient
 
 logging.config.fileConfig(os.getenv('LOGGING_FILE_CONFIG', './logging.conf'))
 logger = logging.getLogger(__name__)
@@ -41,6 +43,76 @@ def list_triplegeo_profiles():
     return [pn for pn in triplegeoprofiles.name_to_profile]
 
 
+# FIXME: Replace dummy PID service with actual one
+pid_service = DummyPIDServiceClient()
+pid_service.set_id_mappings({
+    'topio.arc.topio_kg.file': '/tmp/topio_kg/gis_osm_places_free_1.nt',
+    'topio.iais.my_dataset.file':
+        '/tmp/topio_kg/corfu/get_pois_v02_corfu_2100.shp'
+})
+
+
+def _get_file(topio_id: str):
+    local_id: str = pid_service.get_custom_id(topio_id)
+
+    if local_id is None:
+        raise FileNotFoundError()
+
+    if not (local_id.startswith('file://') or local_id.startswith('/')):
+        raise ProtocolNotSupportedException(f'Cannot open {local_id}')
+
+    if local_id.startswith('file://'):
+        local_id = local_id.replace('file://', '')
+
+    # File is opened to probe whether we have the permission to do so. If not
+    # this will cause a permission error which is caught by the caller.
+    file = open(local_id)
+
+    return file
+
+
+def get_file_path(topio_id: str) -> str:
+    try:
+        file = _get_file(topio_id)
+        file_path = file.name
+        file.close()
+
+    except ProtocolNotSupportedException as e:
+        logger.error(e.msg)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=e.msg
+        )
+
+    except PermissionError:
+        err_msg = \
+            f'No permission to access input file {topio_id}'
+
+        logger.error(err_msg)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=err_msg
+        )
+
+    except FileNotFoundError:
+        err_msg = f'Input file {topio_id} not found'
+
+        logger.error(err_msg)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=err_msg
+        )
+
+    except OSError as e:
+        logger.error(str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    return file_path
+
+
 @gkgaas_app.post('/add_to_knowledge_graph', status_code=status.HTTP_201_CREATED)
 def add_to_knowledge_graph(
         kg_conversion_information: KnowledgeGraphConversionInformation
@@ -60,7 +132,8 @@ def add_to_knowledge_graph(
             kg_conversion_information.conversion_profile_name.lower()
         triplegeo_profile = \
             triplegeoprofiles.name_to_profile.get(triplegeo_profile_name)
-        triplegeo_input_file = kg_conversiuon_information.input_file_topio_id
+        triplegeo_input_topio_id = \
+            kg_conversion_information.input_file_topio_id
     except (KeyError, AttributeError):
         log_msg = 'Conversion tool TripleGeo was not configured properly'
         logger.error(log_msg)
@@ -77,9 +150,7 @@ def add_to_knowledge_graph(
                    f'"{triplegeo_profile_name}" not known'
         )
 
-    # FIXME: has to fetch the input file first!
-    # return status.HTTP_400_BAD_REQUEST if dataset is not found or user does
-    # not have the permission to access
+    triplegeo_input_file_path = get_file_path(triplegeo_input_topio_id)
 
     # TODO: Check whether file format matches triplegeo_profile.input_format
     # return status.HTTP_400_BAD_REQUEST if file format does not match
@@ -88,8 +159,9 @@ def add_to_knowledge_graph(
         triplegeo = TripleGeoRunner(
             triplegeo_executable_path=triplegeo_exec_path,
             profile=triplegeo_profile,
-            input_files=[triplegeo_input_file],
+            input_files=[triplegeo_input_file_path],
             output_dir=working_dir)
+
     except WrongExecutablePath as e:
         # In case the TripleGeo executable path is mis-configured this will
         # cause an unrecoverable error
@@ -111,22 +183,17 @@ def add_to_knowledge_graph(
                    'file is in the correct format.')
 
     result_file_name = \
-        get_file_name_base(triplegeo_input_file) + default_rdf_file_postfix
+        get_file_name_base(triplegeo_input_file_path) + default_rdf_file_postfix
     triplegeo_result_file_path = os.path.join(working_dir, result_file_name)
 
     ############################################################################
     # Linking - LIMES
     #
-
-    # TODO: Get Topio KG file
-    # Return 400 Bad Request if file does not exist
-
     try:
         limes_cfg = cfg['limes']
         limes_exec_path = limes_cfg['executable_path']
-
-        limes_target = kg_conversiuon_information.topio_kg_topio_id
-    except (KeyError, AttributeError) as e:
+        limes_target_topio_id = kg_conversion_information.topio_kg_topio_id
+    except (KeyError, AttributeError):
         log_msg = 'Linking tool LIMES was not configured properly'
         logger.error(log_msg)
 
@@ -134,6 +201,8 @@ def add_to_knowledge_graph(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=log_msg
         )
+
+    topio_kg_file_path = get_file_path(limes_target_topio_id)
 
     # TODO: Determine which linking profile to use based on metadata? So far we concentrate on POI data
     limes_profile = limesprofiles.slipo_equi_match_by_name_and_distance
@@ -145,7 +214,7 @@ def add_to_knowledge_graph(
             limes_executable_path=limes_exec_path,
             profile=limes_profile,
             source_input_file_path=triplegeo_result_file_path,
-            target_input_file_path=limes_target,
+            target_input_file_path=topio_kg_file_path,
             result_links_kg_file_path=links_file_path,
             output_dir=working_dir)
 
@@ -192,7 +261,7 @@ def add_to_knowledge_graph(
             fagi_executable_path=fagi_exec_path,
             profile=fagi_profile,
             left_input_file_path=triplegeo_result_file_path,
-            right_input_file_path=kg_conversiuon_information.topio_kg_topio_id,
+            right_input_file_path=topio_kg_file_path,
             links_file_path=links_file_path,
             output_dir_path=working_dir)
 
@@ -213,9 +282,14 @@ def add_to_knowledge_graph(
             detail='The data fusion process failed due to an internal error')
 
     # TODO: Write back result files to Topio Drive
+    fused_dataset_file_path = os.path.join(
+        working_dir, fagi_profile.config.target.fused)
+
+    pid_service.register_asset(fused_dataset_file_path)
+    fused_dataset_topio_id = pid_service.get_topio_id(fused_dataset_file_path)
 
     return KnowledgeGraphInfo(
-        user_kg_topio_id='false'  # FIXME,
+        user_kg_topio_id=fused_dataset_topio_id,
         topio_kg_topio_id=kg_conversion_information.topio_kg_topio_id
     )
 
