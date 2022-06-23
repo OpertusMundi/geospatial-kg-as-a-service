@@ -313,10 +313,18 @@ def make_knowledge_graph(
     triplegeo_input_files = conversion_description.input_file_paths
 
     if triplegeo_profile is None:
-        raise Exception(f'Conversion profile {triplegeo_profile_name} is not '
-                        f'known.')
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        response.body =\
+            f'Conversion profile name "{triplegeo_profile_name}" not known'
+
+        return response
 
     # FIXME: has to fetch the files first!
+    # return status.HTTP_400_BAD_REQUEST if dataset is not found or user does
+    # not have the permission to access
+
+    # TODO: Check whether file format matches triplegeo_profile.input_format
+    # return status.HTTP_400_BAD_REQUEST if file format does not match
 
     try:
         triplegeo = TripleGeoRunner(
