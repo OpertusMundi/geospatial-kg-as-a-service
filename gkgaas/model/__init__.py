@@ -11,11 +11,11 @@ class ConversionDescription(BaseModel):
 
 
 class KnowledgeGraphConversionInformation(BaseModel):
-    input_file_address: str
+    input_file_topio_id: str
     conversion_profile_name: str
-    topio_kg_address: str
+    topio_kg_topio_id: str
 
 
 class KnowledgeGraphInfo(BaseModel):
-    kg_address: str
-    topio_kg_address: str
+    user_kg_topio_id: str
+    topio_kg_topio_id: str

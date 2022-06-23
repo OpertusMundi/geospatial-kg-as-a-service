@@ -15,7 +15,8 @@ from gkgaas.fagi import LinksFormat
 from gkgaas.fagi.preconfigs.profiles import slipo_default_ab_mode
 from gkgaas.fagi.runner import FAGIRunner
 from gkgaas.limes.runner import LIMESRunner
-from gkgaas.model import ConversionDescription, KnowledgeGraphConversionInformation, KnowledgeGraphInfo
+from gkgaas.model import ConversionDescription, KnowledgeGraphConversionInformation, \
+    KnowledgeGraphInfo
 from gkgaas.sparqlserver.fusekiwrapper import FusekiWrapper
 from gkgaas.triplegeo.runner import TripleGeoRunner
 from gkgaas.utils.paths import get_file_name_base, get_links_file_path
@@ -59,7 +60,7 @@ def add_to_knowledge_graph(
             kg_conversion_information.conversion_profile_name.lower()
         triplegeo_profile = \
             triplegeoprofiles.name_to_profile.get(triplegeo_profile_name)
-        triplegeo_input_file = kg_conversiuon_information.input_file_address
+        triplegeo_input_file = kg_conversiuon_information.input_file_topio_id
     except (KeyError, AttributeError):
         log_msg = 'Conversion tool TripleGeo was not configured properly'
         logger.error(log_msg)
@@ -124,7 +125,7 @@ def add_to_knowledge_graph(
         limes_cfg = cfg['limes']
         limes_exec_path = limes_cfg['executable_path']
 
-        limes_target = kg_conversiuon_information.topio_kg_address
+        limes_target = kg_conversiuon_information.topio_kg_topio_id
     except (KeyError, AttributeError) as e:
         log_msg = 'Linking tool LIMES was not configured properly'
         logger.error(log_msg)
@@ -147,6 +148,7 @@ def add_to_knowledge_graph(
             target_input_file_path=limes_target,
             result_links_kg_file_path=links_file_path,
             output_dir=working_dir)
+
     except WrongExecutablePath as e:
         logger.error(str(e))
 
@@ -190,7 +192,7 @@ def add_to_knowledge_graph(
             fagi_executable_path=fagi_exec_path,
             profile=fagi_profile,
             left_input_file_path=triplegeo_result_file_path,
-            right_input_file_path=kg_conversiuon_information.topio_kg_address,
+            right_input_file_path=kg_conversiuon_information.topio_kg_topio_id,
             links_file_path=links_file_path,
             output_dir_path=working_dir)
 
@@ -213,8 +215,8 @@ def add_to_knowledge_graph(
     # TODO: Write back result files to Topio Drive
 
     return KnowledgeGraphInfo(
-        kg_address='false',  # FIXME
-        topio_kg_address=kg_conversiuon_information.topio_kg_address
+        user_kg_topio_id='false'  # FIXME,
+        topio_kg_topio_id=kg_conversion_information.topio_kg_topio_id
     )
 
 
