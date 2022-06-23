@@ -42,7 +42,7 @@ def list_triplegeo_profiles():
 
 @gkgaas_app.post('/add_to_knowledge_graph', status_code=status.HTTP_201_CREATED)
 def add_to_knowledge_graph(
-        kg_conversiuon_information: KnowledgeGraphConversionInformation
+        kg_conversion_information: KnowledgeGraphConversionInformation
 ) -> KnowledgeGraphInfo:
 
     working_dir = tempfile.mkdtemp()
@@ -56,11 +56,11 @@ def add_to_knowledge_graph(
         triplegeo_cfg = cfg['triplegeo']
         triplegeo_exec_path = triplegeo_cfg['executable_path']
         triplegeo_profile_name = \
-            kg_conversiuon_information.conversion_profile_name.lower()
+            kg_conversion_information.conversion_profile_name.lower()
         triplegeo_profile = \
             triplegeoprofiles.name_to_profile.get(triplegeo_profile_name)
         triplegeo_input_file = kg_conversiuon_information.input_file_address
-    except (KeyError, AttributeError) as e:
+    except (KeyError, AttributeError):
         log_msg = 'Conversion tool TripleGeo was not configured properly'
         logger.error(log_msg)
 
@@ -171,7 +171,8 @@ def add_to_knowledge_graph(
         # set up FAGI for data fusion
         fagi_cfg = cfg['fagi']
         fagi_exec_path = fagi_cfg['executable_path']
-    except (KeyError, AttributeError) as e:
+
+    except (KeyError, AttributeError):
         log_msg = 'Data fusion tool FAGI was not configured properly'
         logger.error(log_msg)
 
@@ -192,6 +193,7 @@ def add_to_knowledge_graph(
             right_input_file_path=kg_conversiuon_information.topio_kg_address,
             links_file_path=links_file_path,
             output_dir_path=working_dir)
+
     except WrongExecutablePath as e:
         logger.error(str(e))
         raise HTTPException(
@@ -202,6 +204,7 @@ def add_to_knowledge_graph(
 
     try:
         fagi.run()
+
     except RunnerExecutionFailed:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
